@@ -17,8 +17,7 @@
          but the old csproj where items were explicitly added, this may not be the best behavior - may need to
          consider that scenario -->
     <ItemGroup>
-        <ProtoOutput Include="**/*.proto.cs" />
-        <ProtoC Include="**/*.proto" />
+        <ProtoOutput Include="**/*.proto.cs" />        
     </ItemGroup>
 
     <Target Name="ProtoClean" BeforeTargets="Clean">
@@ -27,6 +26,9 @@
 
     <!-- This target translates all .proto item specs into the output spec -->
     <Target Name="ProtoCalcOutput" BeforeTargets="CoreCompile;ProtoGen">
+        <CreateItem Include="**/*.proto">
+          <Output TaskParameter="Include" ItemName="ProtoC"/>
+        </CreateItem>
         <CalcProtoOutputs Inputs="@(ProtoC)">
             <Output TaskParameter="InputsWithOutput" ItemName="ProtoMapped" />
         </CalcProtoOutputs>
