@@ -64,9 +64,10 @@ namespace MsBuild.ProtocolBuffers
                 executable = "protoc";
             }
 
+            Log.LogMessage("ProtoToolsPath: {0}", ProtoToolsPath);
             var protocPath = Path.Combine(ProtoToolsPath, "tools", environment, executable);
             var protocInclude = Path.Combine(ProtoToolsPath, "tools");
-            Log.LogMessage("ProtoToolsPath: {0}", protocPath);
+            Log.LogMessage("protoc path: {0}", protocPath);
 
             // We want to mirror the input directory structure to the output directory structure
             // see note above about why we need this and how protoc doesn't support it

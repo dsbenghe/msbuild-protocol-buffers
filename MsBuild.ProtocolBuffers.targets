@@ -17,8 +17,7 @@
          but the old csproj where items were explicitly added, this may not be the best behavior - may need to
          consider that scenario -->
     <ItemGroup>
-        <ProtoOutput Include="**/*.proto.cs" />
-        <ProtoC Include="**/*.proto" />
+        <ProtoOutput Include="**/*.proto.cs" />        
     </ItemGroup>
 
     <Target Name="ProtoClean" BeforeTargets="Clean">
@@ -26,7 +25,10 @@
     </Target>
 
     <!-- This target translates all .proto item specs into the output spec -->
-    <Target Name="ProtoCalcOutput" BeforeTargets="CoreCompile;ProtoGen">
+    <Target Name="ProtoCalcOutput" BeforeTargets="CoreCompile;ProtoGenNew;ProtoGenOld">
+        <CreateItem Include="**/*.proto">
+          <Output TaskParameter="Include" ItemName="ProtoC"/>
+        </CreateItem>
         <CalcProtoOutputs Inputs="@(ProtoC)">
             <Output TaskParameter="InputsWithOutput" ItemName="ProtoMapped" />
         </CalcProtoOutputs>
@@ -37,19 +39,30 @@
         </ItemGroup>
         <Message Text="Inputs:  @(ProtoMapped)" />
         <Message Text="Outputs: @(ProtoMapped -> '%(OutputSpec)')" />
+      <Message Text="Target framework:  $(TargetFramework)" Importance="high"/>
+      <Message Text="Target framework:  $(TargetFrameworkIdentifier)" Importance="high"/>
     </Target>
 
     <!-- This target compiles the .proto files which are out of date -->
     <Target
-        Name="ProtoGen"
+        Name="ProtoGenNew"
         BeforeTargets="CoreCompile"
         Inputs="@(ProtoMapped)"
         Outputs="@(ProtoMapped -> '%(OutputSpec)')"
-        DependsOnTargets="ProtoCalcOutput;RunResolvePackageDependencies">
+        DependsOnTargets="ProtoCalcOutput;RunResolvePackageDependencies" Condition="'$(UsingMicrosoftNETSdk)' != ''">
         <ItemGroup>
             <ProtoTools Include="@(PackageDefinitions)" Condition="%(Name) == 'Google.Protobuf.Tools'"/>
         </ItemGroup>
         <ProtoC Inputs="@(ProtoMapped)" ProtoToolsPath="%(ProtoTools.ResolvedPath)" Includes="$(ProtoIncludes)" />
+    </Target>
+
+    <Target
+      Name="ProtoGenOld"
+      BeforeTargets="CoreCompile"
+      Inputs="@(ProtoMapped)"
+      Outputs="@(ProtoMapped -> '%(OutputSpec)')"
+      DependsOnTargets="ProtoCalcOutput" Condition="'$(UsingMicrosoftNETSdk)' == ''">
+        <ProtoC Inputs="@(ProtoMapped)" ProtoToolsPath="$(MSBuildThisFileDirectory)..\..\Google.Protobuf.Tools.3.1.0" Includes="$(ProtoIncludes)" />
     </Target>
 
 </Project>
